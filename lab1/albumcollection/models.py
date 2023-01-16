@@ -23,7 +23,7 @@ class Release(models.Model):
         ('MX', 'Mixtape'),
     ]
 
-    models.ForeignKey(Artist, on_delete=models.CASCADE)    
+    artist = models.ForeignKey(Artist, on_delete=models.CASCADE)    
     name = models.TextField()
     release_type = models.CharField(choices=RELEASE_TYPES, max_length=100, blank=True, default='')
     released = models.DateTimeField(auto_now_add=False)

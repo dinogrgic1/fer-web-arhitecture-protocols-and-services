@@ -19,14 +19,13 @@ from django.conf.urls import include
 from rest_framework_swagger.views import get_swagger_view
 
 from .views import ArtistList, ReleaseList 
-from .serializer import ReleaseSerializer, ArtistsSerializer
 
-schema_view = get_swagger_view(title='Album Collection API v0.01')
+schema_view = get_swagger_view(title='Album Collection API')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
-    re_path(r'^$', schema_view),
-    path('artists/', ArtistList.as_view(), name='artists-list', serializer_class=ArtistsSerializer),
-    path('releases/', ReleaseList.as_view(), name='releases-list', serializer_class=ReleaseSerializer)
+    path('artists/', ArtistList.as_view(), name='artists-list'),
+    path('releases/', ReleaseList.as_view(), name='releases-list'),
+    re_path(r'^$', schema_view)
 ]
