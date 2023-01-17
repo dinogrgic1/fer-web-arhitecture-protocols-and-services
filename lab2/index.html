@@ -1,16 +1,25 @@
 <!DOCTYPE html>
 
 <html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <head>
     <title>APUW - LAB2 - Chat</title>
+    <link rel="stylesheet" href="chat.css">
+    <script src="app-config.js"></script>
     <script src="chat.js"></script>
-    <meta name="description" content="Our first page">
-    <meta name="keywords" content="html tutorial template">
 </head>
 
 <body>
-    Content...
-</body>
+    <div class="botnav">
+        <input id="messageBox" type="text" ev placeholder="Write a message..">
+        <select id="pingMode">
+            <option value="1">1 -- Polling</option>
+            <option value="2">2 -- Long polling</option>
+            <option value="3">3 -- Socket</option>
+        </select>
+    </div>
 
+    <div id="messages"></div>
+</body>
 </html>

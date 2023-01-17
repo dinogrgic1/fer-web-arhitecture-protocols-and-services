@@ -1,0 +1,73 @@
+body {
+    margin: 0 auto;
+    max-width: 800px;
+    padding: 0 20px;
+    background-color: rgba(161, 209, 248, 0.25);
+}
+
+.container {
+    text-align: right;
+    border: 2px solid #d9d9d9d8;
+    background-color: #f1f1f1;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.darker {
+    text-align: left;
+    border-color: #ccc;
+    background-color: #ddd;
+}
+
+.container::after {
+    content: "";
+    clear: both;
+    display: table;
+}
+
+.container img.right {
+    float: right;
+    margin-left: 20px;
+    margin-right: 0;
+}
+
+.time-right {
+    float: right;
+    color: #aaa;
+}
+
+.time-left {
+    float: left;
+    color: #999;
+}
+
+.botnav {
+    position: fixed;
+    bottom: 0;
+    max-width: 800px;
+    width: 100%;
+}
+
+/* Style the input field inside the navbar */
+.botnav input[type=text] {
+    padding: 10px 10px 10px 10px;
+    font-size: 14px;
+    width: 100%;
+}
+
+/* Style the button inside the input container */
+.botnav .search-container button {
+    float: right;
+    padding: 6px;
+    margin-top: 8px;
+    margin-right: 16px;
+    background: #ddd;
+    font-size: 17px;
+    border: none;
+    cursor: pointer;
+}
+
+.botnav .search-container button:hover {
+    background: #ccc;
+}
