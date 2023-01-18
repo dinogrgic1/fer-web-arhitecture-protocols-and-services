@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/dinogrgic1/fer-web-arhitecture-protocols-and-services#readme",
   "dependencies": {
+    "body-parser": "^1.20.1",
     "cors": "^2.8.5",
+    "express": "^4.18.2",
     "git-fire": "^0.2.3"
   }
 }

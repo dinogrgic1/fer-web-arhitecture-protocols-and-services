@@ -1,6 +1,7 @@
 const bodyParser = require("body-parser");
 const express = require('express');
-const cors = require('cors');    
+const cors = require('cors');
+const EventEmitter = require('events');
 
 AUTO_DISCONNECT_TICKS = 50;
 
@@ -14,60 +15,48 @@ app.use(cors());
 let last_messages = {};
 let logged_users = new Set();
 
+const eventEmitter = new EventEmitter();
+
 app.listen(port, () => {
-  console.log(`Chat listening on port ${port}`)
+    console.log(`Chat listening on port ${port}`)
 })
 
-app.get('/messages_poll/:id', (req, res) => {
-    logged_users.add(req.params.id);
-
-    otherUserId = null;
+app.post('/messages_poll', (req, res) => {
+    logged_users.add(req.body.username);
+    otherUsername = null;
     for (const item of logged_users) {
-        if (item != req.params.id) {
-            otherUserId = item;
+        if (item != req.body.username) {
+            otherUsername = item;
             break;
         }
     }
 
-    if (otherUserId == null || !(otherUserId in last_messages)) {
+    if (otherUsername == null || !(otherUsername in last_messages)) {
         res.send({});
         return;
     } else {
-        res.send(last_messages[otherUserId]);
+        res.send(last_messages[otherUsername]);
     }
 })
 
 app.post('/messages_long_poll', (req, res) => {
-    logged_users.add(req.body.id);
+    logged_users.add(req.body.username);
 
-    otherUserId = null;
+    otherUsername = null;
     for (const item of logged_users) {
-        if (item != req.params.id) {
-            otherUserId = item;
+        if (item != req.body.username) {
+            otherUsername = item;
             break;
         }
     }
+    eventEmitter.on(otherUsername, () => {
+        res.send(last_messages[otherUsername]);
+    }); 
 
-    last_timestamp = null;
-    if (otherUserId in last_messages) {
-        last_timestamp = last_messages[otherUserId].timestamp
-    }
-
-    while(last_timestamp == req.body.last_message) {
-        if (otherUserId in last_messages) {
-            last_timestamp = last_messages[otherUserId].timestamp
-        }
-    }
-
-    if (otherUserId == null || !(otherUserId in last_messages)) {
-        return;
-    } else {
-        res.send(last_messages[otherUserId]);
-    }
 })
 
-
 app.post('/message', (req, res) => {
-    last_messages[req.body.userId] = req.body;
+    last_messages[req.body.username] = req.body;
+    eventEmitter.emit(req.body.username);
     res.send({});
 });

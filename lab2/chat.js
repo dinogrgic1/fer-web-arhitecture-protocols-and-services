@@ -14,7 +14,7 @@ xhttp.onreadystatechange = function () {
         if (xhttp.responseText != "{}") {
             let data = JSON.parse(xhttp.responseText);
             if (last_message.timestamp != data.timestamp) {
-                addMessageToPage(data.message, data.userId, data.timestamp);
+                addMessageToPage(data.message, data.username, data.timestamp);
                 last_message = data;
                 localStorage.setItem('lastMessage', data);
             }
@@ -25,6 +25,25 @@ xhttp.onreadystatechange = function () {
 window.addEventListener('load', () => {
     eventListenerSetup();
     window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
+
+    if (localStorage.getItem("username") === null || localStorage.getItem("username") === undefined) {
+        let username = prompt("Insert your username", "");
+        localStorage.setItem("username", username);
+    }
+
+    switch(document.getElementById("pingMode").value) {
+        case POLLING:
+            var interval = setInterval(pollMessages, 1000);
+            break;
+        case LONG_POLLING:
+            longPollMessages();
+            break;
+        case SOCKET:
+            break;
+        default:
+            console.log('errror choice');
+            break;
+    }
 });
 
 function formatted_date(date) {
@@ -35,19 +54,19 @@ function formatted_date(date) {
     return result;
 }
 
-function addMessageToPage(msgStr, userId, timeStr) {
-    const myId = localStorage.getItem("id");
+function addMessageToPage(msgStr, username, timeStr) {
+    const myUsername = localStorage.getItem("username");
     const messagesContext = document.getElementById("messages");
 
     const container = document.createElement("div");
-    container.className = myId == userId ? "container" : "container darker"
+    container.className = myUsername == username ? "container" : "container darker"
 
     const user = document.createElement("p")
-    user.innerHTML = `<u>User #${userId}</u>`
+    user.innerHTML = `<u>${username}</u>`
     const message = document.createElement("p");
     message.innerHTML = msgStr;
     const time = document.createElement("span")
-    time.className = myId == userId ? "time-right" : "time-left";
+    time.className = myUsername == username ? "time-right" : "time-left";
     time.innerText = formatted_date(new Date(timeStr));
     container.appendChild(user);
     container.appendChild(message);
@@ -60,32 +79,47 @@ function addMessageToPage(msgStr, userId, timeStr) {
 function sendMessage(input, event) {
     event.preventDefault();
 
-    let data = { "userId": localStorage.getItem("id"), "message": input.value, "timestamp": Date.now() };
+    let data = { "username": localStorage.getItem("username"), "message": input.value, "timestamp": Date.now() };
     xhttp.open("POST", `${BASE_URL}/message`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(data));
 
-    addMessageToPage(data.message, data.userId, data.timestamp);
+    addMessageToPage(data.message, data.username, data.timestamp);
     input.value = "";
 }
 
-function pollMessages() {
-    if (document.getElementById("pingMode").value != POLLING) {
-        return;
-    }
-    const userId = localStorage.getItem("id")
-    xhttp.open("GET", `${BASE_URL}/messages_poll/${userId}`, true);
+async function pollMessages() {
+    const data = {"username" : localStorage.getItem("username"), "last_message" : last_message.timestamp }
+    xhttp.open("POST", `${BASE_URL}/messages_poll`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
-    xhttp.send();
+    xhttp.send(JSON.stringify(data));
 }
 
-function longPollMessages() {
-    if (document.getElementById("pingMode").value != LONG_POLLING || long_poll_running == true) {
-        return;
-    }
+async function longPollMessages() {
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = async function () {
+        if (this.readyState == 4 && this.status == 200) {
+            console.log(xhttp.responseText);
+            let data = JSON.parse(xhttp.responseText);
+            if (xhttp.responseText != "{}") {
+                if (last_message.timestamp != data.timestamp) {
+                    addMessageToPage(data.message, data.username, data.timestamp);
+                    last_message = data;
+                    localStorage.setItem('lastMessage', data);
+                }
+            }
+            await longPollMessages();
+        }
+
+        else if (this.status == 502) {
+            await longPollMessages();
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+    };
+
     long_poll_running = true;
-    console.log(last_message.timestamp);
-    const data = {"userId" : localStorage.getItem("id"), "last_message" : last_message.timestamp }
+    const data = {"username" : localStorage.getItem("username"), "last_message" : last_message.timestamp }
     xhttp.open("POST", `${BASE_URL}/messages_long_poll`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(data));
@@ -108,5 +142,4 @@ function eventListenerSetup() {
     });
 }
 
-var interval = setInterval(pollMessages, 1000);
-var long_interval = setInterval(longPollMessages, 1000);
+setInterval(pollMessages, 1000);
