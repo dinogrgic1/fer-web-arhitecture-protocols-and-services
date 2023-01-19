@@ -17,7 +17,7 @@ window.addEventListener('load', () => {
 
     switch(document.getElementById("pingMode").value) {
         case POLLING:
-            setInterval(pollMessages, 1000);
+            setInterval(pollMessages, 5000);
             break;
         case LONG_POLLING:
             longPollMessages();
