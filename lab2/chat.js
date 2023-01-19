@@ -1,34 +1,18 @@
-const xhttp = new XMLHttpRequest();
-
-const POLLING = "1"
-const LONG_POLLING = "2"
-const SOCKET = "3"
-
-let long_poll_running = false;
-
 let mode = POLLING;
-let last_message = localStorage.getItem('lastMessage') ?? {};
+let last_message_timestamp = 0;
 
-xhttp.onreadystatechange = function () {
-    if (this.readyState == 4 && this.status == 200) {
-        if (xhttp.responseText != "{}") {
-            let data = JSON.parse(xhttp.responseText);
-            if (last_message.timestamp != data.timestamp) {
-                addMessageToPage(data.message, data.username, data.timestamp);
-                last_message = data;
-                localStorage.setItem('lastMessage', data);
-            }
-        }
-    }
-};
+function addUsername() {
+    let username = prompt("Insert your username", "");
+    localStorage.setItem("username", username);
+}
 
 window.addEventListener('load', () => {
     eventListenerSetup();
     window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
 
+    // Check if username is undefined and prompt user for it.
     if (localStorage.getItem("username") === null || localStorage.getItem("username") === undefined) {
-        let username = prompt("Insert your username", "");
-        localStorage.setItem("username", username);
+        addUsername();
     }
 
     switch(document.getElementById("pingMode").value) {
@@ -55,6 +39,15 @@ function formatted_date(date) {
     return result;
 }
 
+function addMessagesToPage(messages) {
+    for (const idx in messages) {
+        if (messages[idx] == null) {
+            continue;
+        }
+        addMessageToPage(messages[idx].message, messages[idx].username, messages[idx].timestamp);
+    }
+}
+
 function addMessageToPage(msgStr, username, timeStr) {
     const myUsername = localStorage.getItem("username");
     const messagesContext = document.getElementById("messages");
@@ -69,6 +62,7 @@ function addMessageToPage(msgStr, username, timeStr) {
     const time = document.createElement("span")
     time.className = myUsername == username ? "time-right" : "time-left";
     time.innerText = formatted_date(new Date(timeStr));
+    last_message_timestamp = myUsername == username ? last_message_timestamp : timeStr;
     container.appendChild(user);
     container.appendChild(message);
     container.appendChild(time);
@@ -81,6 +75,7 @@ function sendMessage(input, event) {
     event.preventDefault();
 
     let data = { "username": localStorage.getItem("username"), "message": input.value, "timestamp": Date.now() };
+    const xhttp = new XMLHttpRequest();
     xhttp.open("POST", `${BASE_URL}/message`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(data));
@@ -90,7 +85,14 @@ function sendMessage(input, event) {
 }
 
 async function pollMessages() {
-    const data = {"username" : localStorage.getItem("username"), "last_message" : last_message.timestamp }
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = async function () {
+        if (this.readyState == 4 && this.status == 200) {
+            let data = JSON.parse(xhttp.responseText);
+            addMessagesToPage(data);
+        }
+    };
+    const data = {"username" : localStorage.getItem("username"), "last_message" : last_message_timestamp }
     xhttp.open("POST", `${BASE_URL}/messages_poll`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(data));
@@ -100,18 +102,10 @@ async function longPollMessages() {
     const xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = async function () {
         if (this.readyState == 4 && this.status == 200) {
-            console.log(xhttp.responseText);
             let data = JSON.parse(xhttp.responseText);
-            if (xhttp.responseText != "{}") {
-                if (last_message.timestamp != data.timestamp) {
-                    addMessageToPage(data.message, data.username, data.timestamp);
-                    last_message = data;
-                    localStorage.setItem('lastMessage', data);
-                }
-            }
+            addMessagesToPage(data);
             await longPollMessages();
         }
-
         else if (this.status == 502) {
             await longPollMessages();
         } else {
@@ -119,7 +113,7 @@ async function longPollMessages() {
         }
     };
 
-    const data = {"username" : localStorage.getItem("username"), "last_message" : last_message.timestamp }
+    const data = {"username" : localStorage.getItem("username"), "last_message" : last_message_timestamp }
     xhttp.open("POST", `${BASE_URL}/messages_long_poll`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(data));
@@ -131,17 +125,12 @@ async function socketMessages() {
     }
     
     const username = localStorage.getItem("username");
-    console.log(username);
     let socket = new WebSocket(`${SOCKET_URL}?username=${username}`);
     localStorage.setItem("socket", socket)
-    console.log(socket);
-
 
     socket.onmessage = function(event) {
         let data = JSON.parse(event.data);
-        addMessageToPage(data.message, data.username, data.timestamp);
-        last_message = data;
-        localStorage.setItem('lastMessage', data);
+        addMessagesToPage(data);
     }
 }
 
