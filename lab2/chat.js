@@ -33,7 +33,7 @@ window.addEventListener('load', () => {
 
     switch(document.getElementById("pingMode").value) {
         case POLLING:
-            var interval = setInterval(pollMessages, 1000);
+            setInterval(pollMessages, 1000);
             break;
         case LONG_POLLING:
             longPollMessages();
@@ -90,7 +90,6 @@ function sendMessage(input, event) {
 }
 
 async function pollMessages() {
-    console.log('zasto');
     const data = {"username" : localStorage.getItem("username"), "last_message" : last_message.timestamp }
     xhttp.open("POST", `${BASE_URL}/messages_poll`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
@@ -131,13 +130,17 @@ async function socketMessages() {
         return;
     }
     
-    let socket = new WebSocket(`${SOCKET_URL}`);
+    const username = localStorage.getItem("username");
+    console.log(username);
+    let socket = new WebSocket(`${SOCKET_URL}?username=${username}`);
     localStorage.setItem("socket", socket)
+    console.log(socket);
+
+
     socket.onmessage = function(event) {
-        let data = event.data;
+        let data = JSON.parse(event.data);
         addMessageToPage(data.message, data.username, data.timestamp);
         last_message = data;
-        console.log('sta');
         localStorage.setItem('lastMessage', data);
     }
 }

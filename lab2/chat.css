@@ -67,7 +67,11 @@ body {
     border: none;
     cursor: pointer;
 }
-
+    
 .botnav .search-container button:hover {
     background: #ccc;
+}
+
+#messages {
+    margin-bottom: 10%;
 }
