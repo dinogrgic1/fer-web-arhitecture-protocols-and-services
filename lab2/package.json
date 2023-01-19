@@ -1,0 +1,27 @@
+{
+  "name": "chat",
+  "version": "1.0.0",
+  "description": "Chatbo exercise for Web Arhitecture Protocols and Services",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dinogrgic1/fer-web-arhitecture-protocols-and-services.git"
+  },
+  "author": "Dino Grgić",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dinogrgic1/fer-web-arhitecture-protocols-and-services/issues"
+  },
+  "homepage": "https://github.com/dinogrgic1/fer-web-arhitecture-protocols-and-services#readme",
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-ws": "^5.0.2",
+    "git-fire": "^0.2.3",
+    "ws": "^8.12.0"
+  }
+}
