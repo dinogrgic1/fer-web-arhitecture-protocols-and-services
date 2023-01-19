@@ -39,6 +39,7 @@ window.addEventListener('load', () => {
             longPollMessages();
             break;
         case SOCKET:
+            socketMessages();
             break;
         default:
             console.log('errror choice');
@@ -89,6 +90,7 @@ function sendMessage(input, event) {
 }
 
 async function pollMessages() {
+    console.log('zasto');
     const data = {"username" : localStorage.getItem("username"), "last_message" : last_message.timestamp }
     xhttp.open("POST", `${BASE_URL}/messages_poll`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
@@ -118,16 +120,25 @@ async function longPollMessages() {
         }
     };
 
-    long_poll_running = true;
     const data = {"username" : localStorage.getItem("username"), "last_message" : last_message.timestamp }
     xhttp.open("POST", `${BASE_URL}/messages_long_poll`, true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(data));
 }
 
-function socketMessages() {
+async function socketMessages() {
     if (document.getElementById("pingMode").value != SOCKET) {
         return;
+    }
+    
+    let socket = new WebSocket(`${SOCKET_URL}`);
+    localStorage.setItem("socket", socket)
+    socket.onmessage = function(event) {
+        let data = event.data;
+        addMessageToPage(data.message, data.username, data.timestamp);
+        last_message = data;
+        console.log('sta');
+        localStorage.setItem('lastMessage', data);
     }
 }
 
@@ -141,5 +152,3 @@ function eventListenerSetup() {
         }
     });
 }
-
-setInterval(pollMessages, 1000);
