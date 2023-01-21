@@ -7,5 +7,5 @@ Laboratory exercises forWeb Architecture, Protocols, and Services course on Univ
 Web Architecture, Protocols, and Services (EN)](https://www.fer.unizg.hr/en/course/wapas)
 
 ## Exercises
-- [Simple CRUD](/lab1)
-- [Chat - Poolling, Long Poolling, WebSocket](/lab2)
+1. [Simple CRUD](/lab1)
+2. [Chat - Poolling, Long Poolling, WebSocket](/lab2)
